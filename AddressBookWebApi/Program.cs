@@ -1,17 +1,10 @@
-using AddressBook.Domain.Implementation;
-using AddressBook.Domain.Interfaces;
-using AddressBook.Repository.Dapper;
 using AddressBook.Repository.EfCore;
-using AddressBook.Repository.Interfaces;
 using AddressBookWebApi;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using SimpleInjector;
 using SimpleInjector.Lifestyles;
 using Swashbuckle.AspNetCore.Filters;
-using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -35,6 +28,8 @@ builder.Services.AddCors(path =>
     });
 });
 
+
+
 builder.Services.AddSwaggerGen(options =>
 {
     options.AddSecurityDefinition("oauth2", new OpenApiSecurityScheme
@@ -47,33 +42,21 @@ builder.Services.AddSwaggerGen(options =>
 
     options.OperationFilter<SecurityRequirementsOperationFilter>();
 });
-builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-    .AddJwtBearer(options =>
-    {
-        options.TokenValidationParameters = new TokenValidationParameters
-        {
-            ValidateIssuerSigningKey = true,
-            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8
-                .GetBytes(builder.Configuration.GetSection("AppSettings:Token").Value)),
-            ValidateIssuer = false,
-            ValidateAudience = false
-        };
-    });
+
+
+
+IConfiguration configuration = builder.Configuration; 
+builder.Services.Addauth(configuration);
 
 builder.Services.AddSimpleInjector(container, options =>
 {
     options.AddAspNetCore()
         .AddControllerActivation(Lifestyle.Scoped);
-        /*.AddViewComponentActivation()
-        .AddPageModelActivation()
-        .AddTagHelperActivation();*/
-
-    // Optionally, allow application components to depend on the non-generic
-    // ILogger (Microsoft.Extensions.Logging) or IStringLocalizer
-    // (Microsoft.Extensions.Localization) abstractions.
-    options.AddLogging();
+        
+        options.AddLogging();
 });
 container.RegisterPackages(new[] { typeof(RegisterServices).Assembly });
+
 
 
 
